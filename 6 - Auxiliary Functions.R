@@ -100,20 +100,20 @@ fit_jm <- function(data=data, LoT, iter=5000, warmup=1000, chains=3){
 
 # Fitting joint models using the corrected two-stage specification
 # Longitudinal submodels
-fit_biexp <- function(biom_data, patientid1, patientid2=NULL, start, stop, iter=5000, warmup=1000, chains=3){
+fit_biexp <- function(biom_data, patientid, start, stop, iter=5000, warmup=1000, chains=3){
 
   # Model data
   N <- nrow(biom_data)
   n <- length(unique(biom_data$patientid))
   y <- biom_data$y
   tt <- biom_data$time
-  start <- start[(patientid1 %in% unique(biom_data$patientid))]
-  stop <- stop[(patientid1 %in% unique(biom_data$patientid))]
+  start <- start[(patientid %in% unique(biom_data$patientid))]
+  stop <- stop[(patientid %in% unique(biom_data$patientid))]
   ID <- (biom_data %>% group_by(patientid) %>% dplyr::mutate(ID = cur_group_id()))$ID
   
   # Setting initial values
   init_fun <- function(...){ 
-    list(theta = c(0,0,0), sigma2 = 1, Omega = diag(rep(1,3)), bi = matrix(0,nrow=n,ncol=3))
+    list(theta=c(0,0,0), sigma2=1, Omega=diag(rep(1,3)), bi=matrix(0,nrow=n,ncol=3))
   }
   
   options(mc.cores = parallel::detectCores())
@@ -121,8 +121,7 @@ fit_biexp <- function(biom_data, patientid1, patientid2=NULL, start, stop, iter=
   
   i.time <- Sys.time()
   fit <- suppressMessages(suppressWarnings( stan(model_code = BiExp, 
-                                                 data   = list(N=N, n=n, y=log(y+1), ID=ID,
-                                                               times=tt, start=start, stop=stop),
+                                                 data   = list(N=N, n=n, y=log(y+1), ID=ID, times=tt, start=start, stop=stop),
                                                  init   = init_fun,
                                                  iter   = iter,
                                                  warmup = warmup,                 
