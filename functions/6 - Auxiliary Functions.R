@@ -100,8 +100,20 @@ fit_jm <- function(data=data, LoT, iter=5000, warmup=1000, chains=3){
 
 # Fitting joint models using the corrected two-stage specification
 # Longitudinal submodels
-fit_biexp <- function(biom_data, patientid, start, stop, iter=5000, warmup=1000, chains=3){
+fit_biexp <- function(data, biomarker="M-spike", iter=5000, warmup=1000, chains=3){
 
+  # Biomarker information
+  if(biomarker == "M-spike"){
+    biom_data <- data$Long$M_Spike
+    start <- data$Short$start_M
+    stop <- data$Short$stop_M
+  }{
+    biom_data <- data$Long$FLC
+    start <- data$Short$start_F
+    stop <- data$Short$stop_F    
+  }
+  patientid <- data$Short$patientid
+  
   # Model data
   N <- nrow(biom_data)
   n <- length(unique(biom_data$patientid))
