@@ -84,6 +84,12 @@ round(posterior_summary_jm(fit_JM4$fit, type = "surv", LoT = 4), 3)
 # ====================================================================== #
 #       JOINT MODELLING FOR ALL LOTS USING THE CORRECTED TWO-STAGE       #
 # ====================================================================== #
+# LoT 1
+# M-spike
+fit_LONG1_M <- fit_biexp(data = trainlot1, biomarker = "M-spike")
+# FLC
+fit_LONG1_F <- fit_biexp(data = trainlot1, biomarker = "FLC")
+# LoT 2
 
 
 # ====================================================================== #
