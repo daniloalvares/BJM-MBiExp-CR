@@ -131,3 +131,12 @@ round(posterior_summary_ts(fit_LONG4_M$fit, type = "long"), 3)
 round(posterior_summary_ts(fit_LONG4_F$fit, type = "long"), 3)
 round(posterior_summary_ts(fit_Surv4$fit, type = "surv", LoT = 4), 3)
 # ====================================================================== #
+
+
+# ====================================================================== #
+#                 FITTED AVERAGE LONGITUDINAL TRAJECTORY                 #
+# ====================================================================== #
+plot_avg_trajectory(fit_JM1, fit_JM2, fit_JM3, fit_JM4,
+                    fit_LONG1_M, fit_LONG2_M, fit_LONG3_M, fit_LONG4_M,
+                    fit_LONG1_F, fit_LONG2_F, fit_LONG3_F, fit_LONG4_F)
+# ====================================================================== #
