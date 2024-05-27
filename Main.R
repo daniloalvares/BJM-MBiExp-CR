@@ -144,3 +144,34 @@ plot_avg_trajectory(fit_JM1, fit_JM2, fit_JM3, fit_JM4,
                     fit_LONG1_M, fit_LONG2_M, fit_LONG3_M, fit_LONG4_M,
                     fit_LONG1_F, fit_LONG2_F, fit_LONG3_F, fit_LONG4_F)
 # ====================================================================== #
+
+
+# ====================================================================== #
+#                UPDATE RANDOM EFFECTS FOR THE TEST DATA                 #
+# ====================================================================== #
+# Updating random effects for test set patients 
+# LoT 1
+uRE_testlot1 <- update_RE(data=testlot1, fit_JM=fit_JM1,
+                          fit_LONG_M=fit_LONG1_M, fit_LONG_F=fit_LONG1_F,
+                          fit_CR_Surv=fit_CR1, LoT=1)
+update_testlot1_JM <- uRE_testlot1$update_JM
+update_testlot1_TS <- uRE_testlot1$update_TS
+# LoT 2
+uRE_testlot2 <- update_RE(data=testlot2, fit_JM=fit_JM2,
+                          fit_LONG_M=fit_LONG2_M, fit_LONG_F=fit_LONG2_F,
+                          fit_CR_Surv=fit_CR2, LoT=2)
+update_testlot2_JM <- uRE_testlot2$update_JM
+update_testlot2_TS <- uRE_testlot2$update_TS
+# LoT 3
+uRE_testlot3 <- update_RE(data=testlot3, fit_JM=fit_JM3,
+                          fit_LONG_M=fit_LONG3_M, fit_LONG_F=fit_LONG3_F,
+                          fit_CR_Surv=fit_CR3, LoT=3)
+update_testlot3_JM <- uRE_testlot3$update_JM
+update_testlot3_TS <- uRE_testlot3$update_TS
+# LoT 4
+uRE_testlot4 <- update_RE(data=testlot4, fit_JM=fit_JM4,
+                          fit_LONG_M=fit_LONG4_M, fit_LONG_F=fit_LONG4_F,
+                          fit_CR_Surv=fit_Surv4, LoT=4)
+update_testlot4_JM <- uRE_testlot4$update_JM
+update_testlot4_TS <- uRE_testlot4$update_TS
+# ====================================================================== #
