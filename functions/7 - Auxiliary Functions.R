@@ -427,7 +427,7 @@ posterior_summary_ts <- function(fit, type="long", LoT){
 
 
 # Fitted average longitudinal trajectory
-avg_trajectory <- function(fit1, fit2, fit3, fit4, fit5=NULL, fit6=NULL, fit7=NULL, fit8=NULL, approach="JE"){
+avg_trajectory_fc <- function(fit1, fit2, fit3, fit4, fit5=NULL, fit6=NULL, fit7=NULL, fit8=NULL, approach="JE"){
   
   # M-spike
   if(approach == "JE"){
