@@ -307,7 +307,6 @@ check_jm_ess_rhat <- function(fit_1, fit_2, fit_3, fit_4){
   print( out )
 }
 
-
 check_long_ess_rhat <- function(fit_1_M, fit_1_F, fit_2_M, fit_2_F, fit_3_M, fit_3_F, fit_4_M, fit_4_F){
 
   pars <- c("theta","sigma2","Omega")
@@ -351,7 +350,6 @@ check_long_ess_rhat <- function(fit_1_M, fit_1_F, fit_2_M, fit_2_F, fit_3_M, fit
   print( out )
   
 }
-
 
 check_surv_ess_rhat <- function(fit_1, fit_2, fit_3, fit_4){
     
@@ -407,7 +405,6 @@ posterior_summary_jm <- function(fit, type="long", LoT){
   
 }
 
-
 posterior_summary_ts <- function(fit, type="long", LoT){
   
   out <- NULL
@@ -428,3 +425,142 @@ posterior_summary_ts <- function(fit, type="long", LoT){
   
 }
 
+
+# Fitted average longitudinal trajectory
+avg_trajectory <- function(fit1, fit2, fit3, fit4, fit5=NULL, fit6=NULL, fit7=NULL, fit8=NULL, approach="JE"){
+  
+  # M-spike
+  if(approach == "JE"){
+    B10_M <- exp(extract(fit1, "theta_M")$theta_M[,1])
+    G10_M <- exp(extract(fit1, "theta_M")$theta_M[,2])
+    D10_M <- exp(extract(fit1, "theta_M")$theta_M[,3])
+    
+    B20_M <- exp(extract(fit2, "theta_M")$theta_M[,1])
+    G20_M <- exp(extract(fit2, "theta_M")$theta_M[,2])
+    D20_M <- exp(extract(fit2, "theta_M")$theta_M[,3])
+    
+    B30_M <- exp(extract(fit3, "theta_M")$theta_M[,1])
+    G30_M <- exp(extract(fit3, "theta_M")$theta_M[,2])
+    D30_M <- exp(extract(fit3, "theta_M")$theta_M[,3])
+    
+    B40_M <- exp(extract(fit4, "theta_M")$theta_M[,1])
+    G40_M <- exp(extract(fit4, "theta_M")$theta_M[,2])
+    D40_M <- exp(extract(fit4, "theta_M")$theta_M[,3])
+  }else{
+    B10_M <- exp(extract(fit1, "theta")$theta[,1])
+    G10_M <- exp(extract(fit1, "theta")$theta[,2])
+    D10_M <- exp(extract(fit1, "theta")$theta[,3])
+    
+    B20_M <- exp(extract(fit2, "theta")$theta[,1])
+    G20_M <- exp(extract(fit2, "theta")$theta[,2])
+    D20_M <- exp(extract(fit2, "theta")$theta[,3])
+    
+    B30_M <- exp(extract(fit3, "theta")$theta[,1])
+    G30_M <- exp(extract(fit3, "theta")$theta[,2])
+    D30_M <- exp(extract(fit3, "theta")$theta[,3])
+    
+    B40_M <- exp(extract(fit4, "theta")$theta[,1])
+    G40_M <- exp(extract(fit4, "theta")$theta[,2])
+    D40_M <- exp(extract(fit4, "theta")$theta[,3])
+  }
+  
+  # FLC
+  if(approach == "JE"){
+    B10_F <- exp(extract(fit1, "theta_F")$theta_F[,1])
+    G10_F <- exp(extract(fit1, "theta_F")$theta_F[,2])
+    D10_F <- exp(extract(fit1, "theta_F")$theta_F[,3])
+    
+    B20_F <- exp(extract(fit2, "theta_F")$theta_F[,1])
+    G20_F <- exp(extract(fit2, "theta_F")$theta_F[,2])
+    D20_F <- exp(extract(fit2, "theta_F")$theta_F[,3])
+    
+    B30_F <- exp(extract(fit3, "theta_F")$theta_F[,1])
+    G30_F <- exp(extract(fit3, "theta_F")$theta_F[,2])
+    D30_F <- exp(extract(fit3, "theta_F")$theta_F[,3])
+    
+    B40_F <- exp(extract(fit4, "theta_F")$theta_F[,1])
+    G40_F <- exp(extract(fit4, "theta_F")$theta_F[,2])
+    D40_F <- exp(extract(fit4, "theta_F")$theta_F[,3])
+  }else{
+    B10_F <- exp(extract(fit5, "theta")$theta[,1])
+    G10_F <- exp(extract(fit5, "theta")$theta[,2])
+    D10_F <- exp(extract(fit5, "theta")$theta[,3])
+    
+    B20_F <- exp(extract(fit6, "theta")$theta[,1])
+    G20_F <- exp(extract(fit6, "theta")$theta[,2])
+    D20_F <- exp(extract(fit6, "theta")$theta[,3])
+    
+    B30_F <- exp(extract(fit7, "theta")$theta[,1])
+    G30_F <- exp(extract(fit7, "theta")$theta[,2])
+    D30_F <- exp(extract(fit7, "theta")$theta[,3])
+    
+    B40_F <- exp(extract(fit8, "theta")$theta[,1])
+    G40_F <- exp(extract(fit8, "theta")$theta[,2])
+    D40_F <- exp(extract(fit8, "theta")$theta[,3])
+  }
+  
+  tt <- seq(0, 7, len=100)
+  long11 <- long12 <- long13 <- long14 <- rep(NA, length(tt))
+  long21 <- long22 <- long23 <- long24 <- rep(NA, length(tt))
+  long31 <- long32 <- long33 <- long34 <- rep(NA, length(tt))
+  long11L <- long12L <- long13L <- long14L <- rep(NA, length(tt))
+  long21L <- long22L <- long23L <- long24L <- rep(NA, length(tt))
+  long31L <- long32L <- long33L <- long34L <- rep(NA, length(tt))
+  long11U <- long12U <- long13U <- long14U <- rep(NA, length(tt))
+  long21U <- long22U <- long23U <- long24U <- rep(NA, length(tt))
+  long31U <- long32U <- long33U <- long34U <- rep(NA, length(tt))
+  
+  for(l in 1:length(tt)){
+    # M-spike
+    longaux11 <- B10_M * (exp(G10_M * tt[l]) + exp(-D10_M * tt[l]) - 1)
+    longaux12 <- B20_M * (exp(G20_M * tt[l]) + exp(-D20_M * tt[l]) - 1)
+    longaux13 <- B30_M * (exp(G30_M * tt[l]) + exp(-D30_M * tt[l]) - 1)
+    longaux14 <- B40_M * (exp(G40_M * tt[l]) + exp(-D40_M * tt[l]) - 1)
+    
+    long11[l] <- mean(longaux11)
+    long12[l] <- mean(longaux12)
+    long13[l] <- mean(longaux13)
+    long14[l] <- mean(longaux14)
+    
+    long11L[l] <- quantile(longaux11, probs=0.025)
+    long12L[l] <- quantile(longaux12, probs=0.025)
+    long13L[l] <- quantile(longaux13, probs=0.025)
+    long14L[l] <- quantile(longaux14, probs=0.025)
+    
+    long11U[l] <- quantile(longaux11, probs=0.975)
+    long12U[l] <- quantile(longaux12, probs=0.975)
+    long13U[l] <- quantile(longaux13, probs=0.975)
+    long14U[l] <- quantile(longaux14, probs=0.975)
+    
+    # FLC
+    longaux21 <- B10_F * (exp(G10_F * tt[l]) + exp(-D10_F * tt[l]) - 1)
+    longaux22 <- B20_F * (exp(G20_F * tt[l]) + exp(-D20_F * tt[l]) - 1)
+    longaux23 <- B30_F * (exp(G30_F * tt[l]) + exp(-D30_F * tt[l]) - 1)
+    longaux24 <- B40_F * (exp(G40_F * tt[l]) + exp(-D40_F * tt[l]) - 1)
+    
+    long21[l] <- mean(longaux21)
+    long22[l] <- mean(longaux22)
+    long23[l] <- mean(longaux23)
+    long24[l] <- mean(longaux24)
+    
+    long21L[l] <- quantile(longaux21, probs=0.025)
+    long22L[l] <- quantile(longaux22, probs=0.025)
+    long23L[l] <- quantile(longaux23, probs=0.025)
+    long24L[l] <- quantile(longaux24, probs=0.025)
+    
+    long21U[l] <- quantile(longaux21, probs=0.975)
+    long22U[l] <- quantile(longaux22, probs=0.975)
+    long23U[l] <- quantile(longaux23, probs=0.975)
+    long24U[l] <- quantile(longaux24, probs=0.975)
+  }
+  
+  dta <- data.frame(time=rep(tt,8),
+                    long=c(long11,long12,long13,long14,long21,long22,long23,long24),
+                    longL=c(long11L,long12L,long13L,long14L,long21L,long22L,long23L,long24L),
+                    longU=c(long11U,long12U,long13U,long14U,long21U,long22U,long23U,long24U),
+                    biom=factor(c(rep("M-spike",4*length(tt)),rep("FLC",4*length(tt)))),
+                    LoT=factor(rep(rep(c("LoT 1","LoT 2","LoT 3","LoT 4"),each=length(tt)),2)))
+  dta$biom <- factor(dta$biom, levels=c("M-spike","FLC"))
+  
+  return(dta)
+}
