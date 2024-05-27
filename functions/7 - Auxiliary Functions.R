@@ -757,3 +757,22 @@ update_bi <- function(data, fit1, fit2=NULL, fit3=NULL, approach="JE", LoT, iter
   return( out )
   
 }
+
+update_random_effects <- function(data, fit_JM, fit_LONG_M, fit_LONG_F, fit_CR_Surv, LoT, progress=FALSE){
+  
+  uniqueID <- unique(data$Short$patientid)
+  len_uniqueID <- length(uniqueID)
+  update_JM <- update_TS <- list()
+  
+  for(i in 1:len_uniqueID){
+    if(progress){ print(paste0(i,"/",len_uniqueID)) }
+    dd <- data
+    dd$Short <- dd1$Short[dd$Short$patientid == uniqueID[i],]
+    dd$Long$M_Spike <- dd$Long$M_Spike[dd$Long$M_Spike$patientid == uniqueID[i],]
+    dd$Long$FLC <- dd$Long$FLC[dd$Long$FLC$patientid == uniqueID[i],]
+    update_JM[[i]] <- update_bi(data=dd, fit1=fit_JM$fit, fit2=NULL, fit3=NULL, approach="JE", LoT=LoT, iter=100)
+    update_TS[[i]] <- update_bi(data=dd, fit1=fit_LONG_M$fit, fit2=fit_LONG_F$fit, fit3=fit_CR_Surv$fit, approach="TS", LoT=LoT, iter=100)
+  }
+  
+  return( list(update_JM=update_JM, update_TS=update_TS) )
+}
