@@ -269,6 +269,7 @@ MAP_fc <- function(x){
   out <- s$x[which(s$y==max(s$y))]
   
   return( out )
+  
 }
 
 
@@ -305,6 +306,7 @@ check_jm_ess_rhat <- function(fit_1, fit_2, fit_3, fit_4){
   rownames(out) <- c("LoT 1", "LoT 2", "LoT 3", "LoT 4")
   
   print( out )
+  
 }
 
 check_long_ess_rhat <- function(fit_1_M, fit_1_F, fit_2_M, fit_2_F, fit_3_M, fit_3_F, fit_4_M, fit_4_F){
@@ -381,6 +383,7 @@ check_surv_ess_rhat <- function(fit_1, fit_2, fit_3, fit_4){
   rownames(out) <- c("LoT 1", "LoT 2", "LoT 3", "LoT 4")
     
   print( out )
+  
 }
 
 
@@ -563,6 +566,7 @@ avg_trajectory_fc <- function(fit1, fit2, fit3, fit4, fit5=NULL, fit6=NULL, fit7
   out$biom <- factor(out$biom, levels=c("M-spike","FLC"))
   
   return( out )
+  
 }
 
 
@@ -775,6 +779,46 @@ update_RE <- function(data, fit_JM, fit_LONG_M, fit_LONG_F, fit_CR_Surv, LoT, pr
   }
   
   return( list(update_JM=update_JM, update_TS=update_TS) )
+  
+}
+
+
+# Posterior mean of theta pararameters and random effects
+posterior_mean_fc <- function(fit_JM, RE_JM, fit_LONG_M, fit_LONG_F, RE_TS){
+  
+  theta_M_JM <- apply(extract(fit_JM, "theta_M")$theta_M, 2, mean)
+  theta_F_JM <- apply(extract(fit_JM, "theta_F")$theta_F, 2, mean)
+  theta_M_TS <- apply(extract(fit_LONG_M, "theta")$theta, 2, mean)
+  theta_F_TS <- apply(extract(fit_LONG_F, "theta")$theta, 2, mean)
+  
+  b1_M_JM <- b2_M_JM <- b3_M_JM <- b1_F_JM <- b2_F_JM <- b3_F_JM <- NULL
+  b1_M_TS <- b2_M_TS <- b3_M_TS <- b1_F_TS <- b2_F_TS <- b3_F_TS <- NULL 
+  for(i in 1:nrow(testlot1$Short)){
+    # M-spike
+    b1_M_JM[i] <- mean(RE_JM[[i]]$bi_M.1)
+    b2_M_JM[i] <- mean(RE_JM[[i]]$bi_M.2)
+    b3_M_JM[i] <- mean(RE_JM[[i]]$bi_M.3)
+    b1_M_TS[i] <- mean(RE_TS[[i]]$bi_M.1)
+    b2_M_TS[i] <- mean(RE_TS[[i]]$bi_M.2)
+    b3_M_TS[i] <- mean(RE_TS[[i]]$bi_M.3)
+    # FLC
+    b1_F_JM[i] <- mean(RE_JM[[i]]$bi_F.1)
+    b2_F_JM[i] <- mean(RE_JM[[i]]$bi_F.2)
+    b3_F_JM[i] <- mean(RE_JM[[i]]$bi_F.3)
+    b1_F_TS[i] <- mean(RE_TS[[i]]$bi_F.1)
+    b2_F_TS[i] <- mean(RE_TS[[i]]$bi_F.2)
+    b3_F_TS[i] <- mean(RE_TS[[i]]$bi_F.3)
+  }
+  
+  out <- list(JM=list(theta_M=theta_M_JM, theta_F=theta_F_JM,
+                      b1_M=b1_M_JM, b2_M=b2_M_JM, b3_M=b3_M_JM,
+                      b1_F=b1_F_JM, b2_F=b2_F_JM, b3_F=b3_F_JM),
+              TS=list(theta_M=theta_M_TS, theta_F=theta_F_TS,
+                      b1_M=b1_M_TS, b2_M=b2_M_TS, b3_M=b3_M_TS,
+                      b1_F=b1_F_TS, b2_F=b2_F_TS, b3_F=b3_F_TS))
+  
+  return( out )
+  
 }
 
 
@@ -799,5 +843,6 @@ iwres_fc <- function(data, start, stop, lB, lG, lD, sigma){
   # iwres: [outcome - y_hat] / sigma
   # pred: y_hat
   return( data.frame(time=tt, iwres=iwres, pred=pred) )
+  
 }
 
