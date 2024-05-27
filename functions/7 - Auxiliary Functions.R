@@ -758,7 +758,7 @@ update_bi <- function(data, fit1, fit2=NULL, fit3=NULL, approach="JE", LoT, iter
   
 }
 
-update_random_effects <- function(data, fit_JM, fit_LONG_M, fit_LONG_F, fit_CR_Surv, LoT, progress=FALSE){
+update_RE <- function(data, fit_JM, fit_LONG_M, fit_LONG_F, fit_CR_Surv, LoT, progress=FALSE){
   
   uniqueID <- unique(data$Short$patientid)
   len_uniqueID <- length(uniqueID)
