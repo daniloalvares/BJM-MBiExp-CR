@@ -554,13 +554,206 @@ avg_trajectory <- function(fit1, fit2, fit3, fit4, fit5=NULL, fit6=NULL, fit7=NU
     long24U[l] <- quantile(longaux24, probs=0.975)
   }
   
-  dta <- data.frame(time=rep(tt,8),
+  out <- data.frame(time=rep(tt,8),
                     long=c(long11,long12,long13,long14,long21,long22,long23,long24),
                     longL=c(long11L,long12L,long13L,long14L,long21L,long22L,long23L,long24L),
                     longU=c(long11U,long12U,long13U,long14U,long21U,long22U,long23U,long24U),
                     biom=factor(c(rep("M-spike",4*length(tt)),rep("FLC",4*length(tt)))),
                     LoT=factor(rep(rep(c("LoT 1","LoT 2","LoT 3","LoT 4"),each=length(tt)),2)))
-  dta$biom <- factor(dta$biom, levels=c("M-spike","FLC"))
+  out$biom <- factor(out$biom, levels=c("M-spike","FLC"))
   
-  return(dta)
+  return( out )
+}
+
+
+# Updating random effects (test set data and dynamic predictions)
+update_bi <- function(data, fit1, fit2=NULL, fit3=NULL, approach="JE", LoT, iter=100){
+
+  # Data
+  vars <- c("sex","race_1","race_2","race_3",
+            "ecog_1","ecog_2","ecog_3","iss_1","iss_2","iss_3",
+            "age","albumin","beta2_microglobulin","creatinine",
+            "hemoglobin","ldh","lymphocyte","neutrophil","platelet",
+            "immunoglobulin_a","immunoglobulin_g","immunoglobulin_m")
+  
+  if(LoT == 1){
+    X <- data$Short[,vars]
+  }else{
+    X <- data$Short[,c(vars, "duration")]
+  }
+  
+  y_M <- log(data$Long$M_Spike$y+1)
+  y_F <- log(data$Long$FLC$y+1)
+  times_M <- data$Long$M_Spike$time
+  times_F <- data$Long$FLC$time
+  Time <- data$Short$surv
+  status_1 <- as.numeric((data$Short$status==0 & data$Short$lastLoT==0) | (data$Short$status==2 & data$Short$lastLoT==0))
+  if(LoT != 4){
+    status_2 <- as.numeric(data$Short$status==1 | (data$Short$status==2 & data$Short$lastLoT==1))
+  }else{
+    status_2 <-  data$Short$status
+  }
+  
+  # Parameters
+  if(approach == "JE"){
+    theta_M <- extract(fit1, "theta_M")$theta_M 
+    theta_F <- extract(fit1, "theta_F")$theta_F
+    sigma2_M <- extract(fit1, "sigma2_M")$sigma2_M
+    sigma2_F <- extract(fit1, "sigma2_F")$sigma2_F
+    Omega_M <- extract(fit1, "Omega_M")$Omega_M 
+    Omega_F <- extract(fit1, "Omega_F")$Omega_F
+    beta_2 <- extract(fit1, "beta_2")$beta_2
+    alphaB_2 <- extract(fit1, "alphaB_2")$alphaB_2
+    alphaG_2 <- extract(fit1, "alphaG_2")$alphaG_2
+    alphaD_2 <- extract(fit1, "alphaD_2")$alphaD_2
+    gamma_2 <- extract(fit1, "gamma_2")$gamma_2
+    phi_2 <- extract(fit1, "phi_2")$phi_2
+    if(LoT != 4){
+      beta_1 <- extract(fit1, "beta_1")$beta_1
+      alphaB_1 <- extract(fit1, "alphaB_1")$alphaB_1
+      alphaG_1 <- extract(fit1, "alphaG_1")$alphaG_1
+      alphaD_1 <- extract(fit1, "alphaD_1")$alphaD_1
+      gamma_1 <- extract(fit1, "gamma_1")$gamma_1
+      phi_1 <- extract(fit1, "phi_1")$phi_1
+    }
+  }else{
+    theta_M <- extract(fit1, "theta")$theta 
+    theta_F <- extract(fit2, "theta")$theta
+    sigma2_M <- extract(fit1, "sigma2")$sigma2
+    sigma2_F <- extract(fit2, "sigma2")$sigma2
+    Omega_M <- extract(fit1, "Omega")$Omega 
+    Omega_F <- extract(fit2, "Omega")$Omega
+    beta_2 <- extract(fit3, "beta_2")$beta_2
+    alphaB_2 <- extract(fit3, "alphaB_2")$alphaB_2
+    alphaG_2 <- extract(fit3, "alphaG_2")$alphaG_2
+    alphaD_2 <- extract(fit3, "alphaD_2")$alphaD_2
+    gamma_2 <- extract(fit3, "gamma_2")$gamma_2
+    phi_2 <- extract(fit3, "phi_2")$phi_2
+    if(LoT != 4){
+      beta_1 <- extract(fit3, "beta_1")$beta_1
+      alphaB_1 <- extract(fit3, "alphaB_1")$alphaB_1
+      alphaG_1 <- extract(fit3, "alphaG_1")$alphaG_1
+      alphaD_1 <- extract(fit3, "alphaD_1")$alphaD_1
+      gamma_1 <- extract(fit3, "gamma_1")$gamma_1
+      phi_1 <- extract(fit3, "phi_1")$phi_1
+    }
+  }
+  
+  if(approach == "JE"){
+    prop_theta_M <- mvrnorm(iter, mu=apply(theta_M, 2, MAP_fc), Sigma=diag(apply(theta_M, 2, var))) 
+    prop_theta_F <- mvrnorm(iter, mu=apply(theta_F, 2, MAP_fc), Sigma=diag(apply(theta_F, 2, var))) 
+    prop_sigma_M <- sqrt(exp(rnorm(iter, mean=MAP_fc(log(sigma2_M)), sd=sd(log(sigma2_M)))))
+    prop_sigma_F <- sqrt(exp(rnorm(iter, mean=MAP_fc(log(sigma2_F)), sd=sd(log(sigma2_F)))))
+    prop_Omega_M <- exp(mvrnorm(iter, mu=suppressWarnings(diag(log(apply(Omega_M, c(2,3), MAP_fc)))), Sigma=diag(suppressWarnings(diag(apply(log(Omega_M), c(2,3), var))))))
+    prop_Omega_F <- exp(mvrnorm(iter, mu=suppressWarnings(diag(log(apply(Omega_F, c(2,3), MAP_fc)))), Sigma=diag(suppressWarnings(diag(apply(log(Omega_F), c(2,3), var))))))
+    prop_beta_2 <- mvrnorm(iter, mu=apply(beta_2, 2, MAP_fc), Sigma=diag(apply(beta_2, 2, var)))
+    prop_alphaB_2 <- mvrnorm(iter, mu=apply(alphaB_2, 2, MAP_fc), Sigma=diag(apply(alphaB_2, 2, var)))
+    prop_alphaG_2 <- mvrnorm(iter, mu=apply(alphaG_2, 2, MAP_fc), Sigma=diag(apply(alphaG_2, 2, var)))
+    prop_alphaD_2 <- mvrnorm(iter, mu=apply(alphaD_2, 2, MAP_fc), Sigma=diag(apply(alphaD_2, 2, var)))
+    prop_gamma_2 <- rnorm(iter, mean=MAP_fc(gamma_2), sd=sd(gamma_2))
+    prop_phi_2 <- exp(rnorm(iter, mean=MAP_fc(log(phi_2)), sd=sd(log(phi_2))))
+    if(LoT != 4){
+      prop_beta_1 <- mvrnorm(iter, mu=apply(beta_1, 2, MAP_fc), Sigma=diag(apply(beta_1, 2, var)))
+      prop_alphaB_1 <- mvrnorm(iter, mu=apply(alphaB_1, 2, MAP_fc), Sigma=diag(apply(alphaB_1, 2, var)))
+      prop_alphaG_1 <- mvrnorm(iter, mu=apply(alphaG_1, 2, MAP_fc), Sigma=diag(apply(alphaG_1, 2, var)))
+      prop_alphaD_1 <- mvrnorm(iter, mu=apply(alphaD_1, 2, MAP_fc), Sigma=diag(apply(alphaD_1, 2, var)))
+      prop_gamma_1 <- rnorm(iter, mean=MAP_fc(gamma_1), sd=sd(gamma_1))
+      prop_phi_1 <- exp(rnorm(iter, mean=MAP_fc(log(phi_1)), sd=sd(log(phi_1))))
+    }
+  }else{
+    prop_theta_M <- matrix(apply(theta_M, 2, MAP_fc), nrow=iter, ncol=length(apply(theta_M, 2, MAP_fc)), byrow=TRUE)
+    prop_theta_F <- matrix(apply(theta_F, 2, MAP_fc), nrow=iter, ncol=length(apply(theta_F, 2, MAP_fc)), byrow=TRUE)
+    prop_sigma_M <- sqrt(rep(MAP_fc(sigma2_M), iter))
+    prop_sigma_F <- sqrt(rep(MAP_fc(sigma2_F), iter))
+    prop_Omega_M <- matrix(diag(apply(Omega_M, c(2,3), MAP_fc)), nrow=iter, ncol=length(diag(apply(Omega_M, c(2,3), MAP_fc))), byrow=TRUE)
+    prop_Omega_F <- matrix(diag(apply(Omega_F, c(2,3), MAP_fc)), nrow=iter, ncol=length(diag(apply(Omega_F, c(2,3), MAP_fc))), byrow=TRUE)
+    prop_beta_2 <- matrix(apply(beta_2, 2, MAP_fc), nrow=iter, ncol=length(apply(beta_2, 2, MAP_fc)), byrow=TRUE)
+    prop_alphaB_2 <- matrix(apply(alphaB_2, 2, MAP_fc), nrow=iter, ncol=length(apply(alphaB_2, 2, MAP_fc)), byrow=TRUE)
+    prop_alphaG_2 <- matrix(apply(alphaG_2, 2, MAP_fc), nrow=iter, ncol=length(apply(alphaG_2, 2, MAP_fc)), byrow=TRUE)
+    prop_alphaD_2 <- matrix(apply(alphaD_2, 2, MAP_fc), nrow=iter, ncol=length(apply(alphaD_2, 2, MAP_fc)), byrow=TRUE)
+    prop_gamma_2 <- rep(MAP_fc(gamma_2), iter)
+    prop_phi_2 <- rep(MAP_fc(phi_2), iter)
+    if(LoT != 4){
+      prop_beta_1 <- matrix(apply(beta_1, 2, MAP_fc), nrow=iter, ncol=length(apply(beta_1, 2, MAP_fc)), byrow=TRUE)
+      prop_alphaB_1 <- matrix(apply(alphaB_1, 2, MAP_fc), nrow=iter, ncol=length(apply(alphaB_1, 2, MAP_fc)), byrow=TRUE)
+      prop_alphaG_1 <- matrix(apply(alphaG_1, 2, MAP_fc), nrow=iter, ncol=length(apply(alphaG_1, 2, MAP_fc)), byrow=TRUE)
+      prop_alphaD_1 <- matrix(apply(alphaD_1, 2, MAP_fc), nrow=iter, ncol=length(apply(alphaD_1, 2, MAP_fc)), byrow=TRUE)
+      prop_gamma_1 <- rep(MAP_fc(gamma_1), iter)
+      prop_phi_1 <- rep(MAP_fc(phi_1), iter)
+    }
+  }
+  
+  MAP_Omega <- diag(c(diag(apply(Omega_M, c(2,3), MAP_fc)),diag(apply(Omega_F, c(2,3), MAP_fc))))
+  bi <- matrix(0, nrow=iter, ncol=6)
+  bi_prev <- rep(0, 6)
+  
+  for(j in 1:iter){
+    
+    p.log <- function(b){
+      
+      # M-spike
+      prop_logBi_M <- as.numeric(prop_theta_M[j,1] + b[1])
+      prop_Gi_M <- as.numeric(exp(prop_theta_M[j,2] + b[2]))
+      prop_Di_M <- as.numeric(exp(prop_theta_M[j,3] + b[3]))
+      
+      mu_prop_M <- prop_logBi_M + log( exp(prop_Gi_M * times_M) + exp(-prop_Di_M * times_M) - 1 )
+      log_like_prop_M <- sum(dnorm(y_M, mean=mu_prop_M, sd=prop_sigma_M[j], log=TRUE))
+      log_re_prop_M <- dmvnorm(b[1:3], mu=c(0,0,0), Sigma=diag(prop_Omega_M[j,]), log=TRUE)
+      
+      # FLC
+      prop_logBi_F <- as.numeric(prop_theta_F[j,1] + b[4])
+      prop_Gi_F <- as.numeric(exp(prop_theta_F[j,2] + b[5]))
+      prop_Di_F <- as.numeric(exp(prop_theta_F[j,3] + b[6]))
+      
+      mu_prop_F <- prop_logBi_F + log( exp(prop_Gi_F * times_F) + exp(-prop_Di_F * times_F) - 1 )
+      log_like_prop_F <- sum(dnorm(y_F, mean=mu_prop_F, sd=prop_sigma_F[j], log=TRUE))
+      log_re_prop_F <- dmvnorm(b[4:6], mu=c(0,0,0), Sigma=diag(prop_Omega_F[j,]), log=TRUE)
+      
+      # Survival
+      Xbeta_2 <- prop_gamma_2[j] + sum(X*prop_beta_2[j,])
+      lBialpha_2 <- sum(c(prop_logBi_M,prop_logBi_F)*prop_alphaB_2[j,])
+      lGialpha_2 <- sum(log(c(prop_Gi_M,prop_Gi_F))*prop_alphaG_2[j,])
+      lDialpha_2 <- sum(log(c(prop_Di_M,prop_Di_F))*prop_alphaD_2[j,])
+      
+      loghaz_2 <- log(prop_phi_2[j]) + (prop_phi_2[j]-1)*log(Time) + Xbeta_2 + lBialpha_2 + lGialpha_2 + lDialpha_2
+      cumHaz_2 <- Time^(prop_phi_2[j]) * exp( prop_gamma_2[j] + Xbeta_2 + lBialpha_2 + lGialpha_2 + lDialpha_2 )
+      
+      if(LoT != 4){
+        Xbeta_1 <- prop_gamma_1[j] + sum(X*prop_beta_1[j,])
+        lBialpha_1 <- sum(c(prop_logBi_M,prop_logBi_F)*prop_alphaB_1[j,])
+        lGialpha_1 <- sum(log(c(prop_Gi_M,prop_Gi_F))*prop_alphaG_1[j,])
+        lDialpha_1 <- sum(log(c(prop_Di_M,prop_Di_F))*prop_alphaD_1[j,])
+        
+        loghaz_1 <- log(prop_phi_1[j]) + (prop_phi_1[j]-1)*log(Time) + Xbeta_1 + lBialpha_1 + lGialpha_1 + lDialpha_1
+        cumHaz_1 <- Time^(prop_phi_1[j]) * exp( prop_gamma_1[j] + Xbeta_1 + lBialpha_1 + lGialpha_1 + lDialpha_1 )
+        
+        log_like_surv <- status_1*loghaz_1 + status_2*loghaz_2 - cumHaz_1 - cumHaz_2
+      }else{
+        log_like_surv <- status_2*loghaz_2 - cumHaz_2
+      }
+
+      # Joint likelihood
+      return( log_like_prop_M + log_re_prop_M + log_like_prop_F + log_re_prop_F + log_like_surv )
+    }
+
+    # Adaptive MCMC
+    invisible(capture.output( bb <- MCMC(p.log, n=100, init=bi_prev, scale=MAP_Omega,
+                                         adapt=TRUE, acc.rate=0.234, showProgressBar=FALSE) ))
+    bi[j,] <- apply(bb$samples[-c(1:50),], 2, median)
+    bi_prev <- bi[j,] 
+  }
+  
+  if(LoT == 4){
+    prop_beta_1 <- prop_alphaB_1 <- prop_alphaG_1 <- prop_alphaD_1 <- prop_gamma_1 <- prop_phi_1 <- NA
+  }
+  
+  out <- data.frame(theta_M=prop_theta_M, sigma_M=prop_sigma_M, Omega_M=prop_Omega_M, bi_M=bi[,1:3], 
+                    theta_F=prop_theta_F, sigma_M=prop_sigma_F, Omega_F=prop_Omega_F, bi_F=bi[,4:6],
+                    beta_1=prop_beta_1, alphaB_1=prop_alphaB_1, alphaG_1=prop_alphaG_1,
+                    alphaD_1=prop_alphaD_1, gamma_1=prop_gamma_1, phi_1=prop_phi_1,
+                    beta_2=prop_beta_2, alphaB_2=prop_alphaB_2, alphaG_2=prop_alphaG_2,
+                    alphaD_2=prop_alphaD_2, gamma_2=prop_gamma_2, phi_2=prop_phi_2)
+  
+  return( out )
+  
 }
