@@ -776,3 +776,28 @@ update_RE <- function(data, fit_JM, fit_LONG_M, fit_LONG_F, fit_CR_Surv, LoT, pr
   
   return( list(update_JM=update_JM, update_TS=update_TS) )
 }
+
+
+# Individual weighted residuals (IWRES)
+iwres_fc <- function(data, start, stop, lB, lG, lD, sigma){
+  
+  y <- log(data$y+1)
+  times <- data$time
+  
+  iwres <- tt <- pred <- NULL
+  for(i in 1:length(lB)){
+    if(!is.na(start[i])){
+      aux1 <- times[start[i]:stop[i]]
+      aux2 <- lB[i] + log(exp( exp(lG[i]) * aux1 ) + exp( - exp(lD[i]) * aux1 ) - 1 )
+      iwres <- c(iwres, (y[start[i]:stop[i]] - aux2) / sigma)
+      tt <- c(tt, aux1)
+      pred <- c(pred, aux2)
+    }
+  }
+  
+  # outcome = log(y + 1)
+  # iwres: [outcome - y_hat] / sigma
+  # pred: y_hat
+  return( data.frame(time=tt, iwres=iwres, pred=pred) )
+}
+
