@@ -49,6 +49,12 @@ source("functions/5 - Stan Models.R")
 source("functions/6 - Plots.R")
 # ====================================================================== #
 # Auxiliary functions
+# - Call model fitting functions
+# - Calculate the maximum a posteriori (MAP)
+# - Check model efficiency and convergence
+# - Calculate posterior summaries
+# - Call the average longitudinal trajectory function
+# - Update random effects
 source("functions/7 - Auxiliary Functions.R")
 # ====================================================================== #
 
