@@ -44,8 +44,12 @@ source("functions/4 - Long and Short Formats.R")
 # corrected two-stage approaches
 source("functions/5 - Stan Models.R")
 # ====================================================================== #
+# Plots
+# - Fitted average longitudinal trajectory
+source("functions/6 - Plots.R")
+# ====================================================================== #
 # Auxiliary functions
-source("functions/6 - Auxiliary Functions.R")
+source("functions/7 - Auxiliary Functions.R")
 # ====================================================================== #
 
 
