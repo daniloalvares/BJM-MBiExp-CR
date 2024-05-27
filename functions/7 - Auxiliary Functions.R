@@ -7,7 +7,7 @@ fit_jm <- function(data=data, LoT, iter=5000, warmup=1000, chains=3){
             "hemoglobin","ldh","lymphocyte","neutrophil","platelet",
             "immunoglobulin_a","immunoglobulin_g","immunoglobulin_m")
   
-  if(LoT==1){
+  if(LoT == 1){
     X <- data$Short[,vars]
   }else{
     X <- data$Short[,c(vars, "duration")]
@@ -128,8 +128,8 @@ fit_biexp <- function(data, biomarker="M-spike", iter=5000, warmup=1000, chains=
     list(theta=c(0,0,0), sigma2=1, Omega=diag(rep(1,3)), bi=matrix(0,nrow=n,ncol=3))
   }
   
-  options(mc.cores = parallel::detectCores())
-  rstan_options(auto_write = TRUE)
+  options(mc.cores=parallel::detectCores())
+  rstan_options(auto_write=TRUE)
   
   i.time <- Sys.time()
   fit <- suppressMessages(suppressWarnings( stan(model_code = BiExp, 
@@ -199,8 +199,8 @@ fit_surv <- function(data=data, fit_LONG_M, fit_LONG_F, LoT, iter=1000, warmup=5
            bi_M=matrix(0,nrow=n_M,ncol=3), bi_F=matrix(0,nrow=n_F,ncol=3))
     }
     
-    options(mc.cores = parallel::detectCores())
-    rstan_options(auto_write = TRUE)
+    options(mc.cores=parallel::detectCores())
+    rstan_options(auto_write=TRUE)
     
     i.time <- Sys.time()
     fit <- suppressMessages(suppressWarnings( stan(model_code = WeibPHCompRisk, 
@@ -228,8 +228,8 @@ fit_surv <- function(data=data, fit_LONG_M, fit_LONG_F, LoT, iter=1000, warmup=5
            bi_M=matrix(0,nrow=n_M,ncol=3), bi_F=matrix(0,nrow=n_F,ncol=3))
     }
     
-    options(mc.cores = parallel::detectCores())
-    rstan_options(auto_write = TRUE)
+    options(mc.cores=parallel::detectCores())
+    rstan_options(auto_write=TRUE)
     
     i.time <- Sys.time()
     fit <- suppressMessages(suppressWarnings( stan(model_code = WeibPHSurv, 
@@ -408,10 +408,10 @@ posterior_summary_jm <- function(fit, type="long", LoT){
 posterior_summary_ts <- function(fit, type="long", LoT){
   
   out <- NULL
-  if(type=="long"){
+  if(type == "long"){
     out <- summary(fit, pars=c("theta","sigma2","Omega"))$summary[,c(1,4,8)]
   }else{
-    if(LoT!=4){
+    if(LoT != 4){
       out <- summary(fit, pars=c("beta_1","beta_2","alphaB_1","alphaG_1",
                                  "alphaD_1","alphaB_2","alphaG_2","alphaD_2",
                                  "gamma_1","gamma_2","phi_1","phi_2"))$summary[,c(1,4,8)]
