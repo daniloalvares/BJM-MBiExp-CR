@@ -153,9 +153,8 @@ plot_avg_trajectory(fit_JM1, fit_JM2, fit_JM3, fit_JM4,
 
 
 # ====================================================================== #
-#                UPDATE RANDOM EFFECTS FOR THE TEST DATA                 #
+#               UPDATE RANDOM EFFECTS FOR TEST SET PATIENTS              #
 # ====================================================================== #
-# Updating random effects for test set patients 
 # LoT 1
 uRE_testlot1 <- update_RE(data=testlot1, fit_JM=fit_JM1,
                           fit_LONG_M=fit_LONG1_M, fit_LONG_F=fit_LONG1_F,
@@ -180,4 +179,19 @@ uRE_testlot4 <- update_RE(data=testlot4, fit_JM=fit_JM4,
                           fit_CR_Surv=fit_Surv4, LoT=4)
 update_testlot4_JM <- uRE_testlot4$update_JM
 update_testlot4_TS <- uRE_testlot4$update_TS
+# ====================================================================== #
+
+
+# ====================================================================== #
+#                 INDIVIDUAL WEIGHTED RESIDUALS (IWRES)                  #
+# ====================================================================== #
+plot_iwres(testlot1, testlot2, testlot3, testlot4,
+           fit_JM1, update_testlot1_JM,
+           fit_JM2, update_testlot2_JM,
+           fit_JM3, update_testlot3_JM,
+           fit_JM4, update_testlot4_JM,
+           fit_LONG1_M, fit_LONG1_F, update_testlot1_TS,
+           fit_LONG2_M, fit_LONG2_F, update_testlot2_TS,
+           fit_LONG3_M, fit_LONG3_F, update_testlot3_TS,
+           fit_LONG4_M, fit_LONG4_F, update_testlot4_TS)
 # ====================================================================== #
