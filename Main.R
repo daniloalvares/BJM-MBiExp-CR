@@ -46,6 +46,8 @@ source("functions/5 - Stan Models.R")
 # ====================================================================== #
 # Plots
 # - Fitted average longitudinal trajectory
+# - Individual weighted residuals (IWRES)
+# - Cox-Snell residuals
 source("functions/6 - Plots.R")
 # ====================================================================== #
 # Auxiliary functions
@@ -55,6 +57,9 @@ source("functions/6 - Plots.R")
 # - Calculate posterior summaries
 # - Call the average longitudinal trajectory function
 # - Update random effects
+# - Calculate posterior mean
+# - Calculate individual weighted residuals (IWRES)
+# - Calculate Cox-Snell residuals
 source("functions/7 - Auxiliary Functions.R")
 # ====================================================================== #
 
