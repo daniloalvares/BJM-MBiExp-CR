@@ -792,8 +792,9 @@ posterior_mean_fc <- function(fit_JM, RE_JM, fit_LONG_M, fit_LONG_F, RE_TS){
   theta_F_TS <- apply(extract(fit_LONG_F, "theta")$theta, 2, mean)
   
   b1_M_JM <- b2_M_JM <- b3_M_JM <- b1_F_JM <- b2_F_JM <- b3_F_JM <- NULL
-  b1_M_TS <- b2_M_TS <- b3_M_TS <- b1_F_TS <- b2_F_TS <- b3_F_TS <- NULL 
-  for(i in 1:nrow(testlot1$Short)){
+  b1_M_TS <- b2_M_TS <- b3_M_TS <- b1_F_TS <- b2_F_TS <- b3_F_TS <- NULL
+  n <- length(RE_JM)
+  for(i in 1:n){
     # M-spike
     b1_M_JM[i] <- mean(RE_JM[[i]]$bi_M.1)
     b2_M_JM[i] <- mean(RE_JM[[i]]$bi_M.2)
