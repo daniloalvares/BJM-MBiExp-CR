@@ -505,13 +505,10 @@ avg_trajectory_fc <- function(fit1, fit2, fit3, fit4, fit5=NULL, fit6=NULL, fit7
   tt <- seq(0, 7, len=100)
   long11 <- long12 <- long13 <- long14 <- rep(NA, length(tt))
   long21 <- long22 <- long23 <- long24 <- rep(NA, length(tt))
-  long31 <- long32 <- long33 <- long34 <- rep(NA, length(tt))
   long11L <- long12L <- long13L <- long14L <- rep(NA, length(tt))
   long21L <- long22L <- long23L <- long24L <- rep(NA, length(tt))
-  long31L <- long32L <- long33L <- long34L <- rep(NA, length(tt))
   long11U <- long12U <- long13U <- long14U <- rep(NA, length(tt))
   long21U <- long22U <- long23U <- long24U <- rep(NA, length(tt))
-  long31U <- long32U <- long33U <- long34U <- rep(NA, length(tt))
   
   for(l in 1:length(tt)){
     # M-spike
